@@ -507,6 +507,15 @@ def stcolor(a, cl):
                     file=stdout, end="", flush=True)
             return True
 
+def stfire(a, cl):
+    m = re.match(r"(\w+)\s*", a)
+    if m:
+        global gerrno, gerrln
+        gerrno = m.group(1)
+        gerrln = cl.d
+        return False
+    else:
+        return syntaxerror(cl)
 """
 def stwait(a, cl):
     global gerrno, gerrln
@@ -557,7 +566,8 @@ statements = {
     "LEFT": stleft,
     "RIGHT": stright,
     "HOME": sthome,
-    "COLOR": stcolor
+    "COLOR": stcolor,
+    "FIRE": stfire
 #   "WAIT": stwait
 }
 

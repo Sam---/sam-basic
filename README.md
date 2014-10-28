@@ -11,7 +11,6 @@ This said, BASIC looks to have an actual parser, while SAM-BASIC has a mess wors
 
 Some goals for the future:
 
-* Add `FIRE` statement
 * Add arrays
 * Remove all uses of `eval` from the source
 * Add metadata to events
