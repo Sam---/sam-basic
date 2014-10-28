@@ -1,0 +1,17 @@
+10 PRINT X = AX^2 + BX + C
+20 READ A = #A
+30 READ B = #B
+40 READ C = #C
+50 LET #D BE #B * #B - 4 * #A * #C
+52 IF (#D < 0) GOTO 130
+53 LET #D BE SQRT(#D)
+55 IF (#D = 0 ) GOTO 100
+60 LET #X1 BE (-#B + #D) / (2 * #A)
+70 LET #X2 BE (-#B - #D) / (2 * #A)
+80 PRINT X = #X1, #X2
+90 GOTO 120
+100 LET #X BE -#B / (2 * #A)
+110 PRINT X = #X
+120 EXIT 0
+130 PRINT NO SOLUTIONS
+140 EXIT 0
