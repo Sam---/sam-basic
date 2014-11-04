@@ -561,6 +561,23 @@ def stline(a, cl):
     else:
         return syntaxerror(cl)
 
+def stfor(a, cl):
+    m = re.match(r"(#\w+,)?(\d+,)?(\d+)\s+(.*)$", a)
+    if m:
+        var = m.group(1) or None
+        start = m.group(2) or "0,"
+        end = m.group(3)
+
+        st = m.group(4)
+
+        for i in range(int(start[:-1]), int(end)):
+            if not execute(st, cl):
+                return False
+        return True
+    else:
+        return syntaxerror(cl)
+
+
 """
 def stwait(a, cl):
     global gerrno, gerrln
@@ -614,7 +631,8 @@ statements = {
     "HOME": sthome,
     "COLOR": stcolor,
     "FIRE": stfire,
-    "LINE": stline
+    "LINE": stline,
+    "FOR": stfor,
 #   "WAIT": stwait
 }
 
