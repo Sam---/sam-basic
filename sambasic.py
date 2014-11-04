@@ -316,6 +316,40 @@ def stif(a, cl):
         else:
             return syntaxerror(cl)
 
+def stwhile(a, cl):
+    m = re.match(r"(NOT)?\s*\((.*?)\s*(==|>=|<=|[=<>])\s*(.*?)\)\s*(.*)$", a)
+    if m:
+        a1 = unescape(m.group(2))
+        oper = m.group(3)
+        a2 = unescape(m.group(4))
+        stat = m.group(5)
+        inv = True if m.group(1) else False
+        while {
+                "=": lambda: safexpr(a1) == safexpr(a2),
+                ">": lambda: safexpr(a1) > safexpr(a2),
+                "<": lambda: safexpr(a1) < safexpr(a2),
+                ">=": lambda: safexpr(a1) >= safexpr(a2),
+                "<=": lambda: safexpr(a1) <= safexpr(a2),
+                "==": lambda: a1 == a2
+                }[oper]() ^ inv:
+            if not execute(stat, cl):
+                return False
+        else:
+            return True
+    else:
+        m = re.match(r"(NOT)?\s*\?(\w+)\s*(.*)$", a)
+        if m:
+            inv = False
+            if m.group(1):
+                inv = True
+            while bool(bvars[m.group(2)]) ^ inv:
+                if not execute(m.group(3), cl):
+                    return False
+            else:
+                return True
+        else:
+            return syntaxerror(cl)
+
 
 def strem(a, cl):
     return True
@@ -562,6 +596,7 @@ statements = {
     "READ": stread,
     "GOTO": stgoto,
     "IF" : stif,
+    "WHILE": stwhile,
     "REM": strem,
     "EXIT": stexit,
     "OPEN": stopen,
