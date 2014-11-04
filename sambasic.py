@@ -587,8 +587,6 @@ def stfor(a, cl):
     else:
         return syntaxerror(cl)
 
-
-"""
 def stwait(a, cl):
     global gerrno, gerrln
     @contextmanager
@@ -611,7 +609,6 @@ def stwait(a, cl):
                 gerrno = "KEY"
                 gerrln = cl.d
             return False
-"""
 
 statements = {
     "PRINT": stprint,
@@ -643,7 +640,7 @@ statements = {
     "FIRE": stfire,
     "LINE": stline,
     "FOR": stfor,
-#   "WAIT": stwait
+    "WAIT": stwait
 }
 
 if __name__=='__main__':
