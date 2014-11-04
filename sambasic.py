@@ -587,6 +587,9 @@ def stfor(a, cl):
     else:
         return syntaxerror(cl)
 
+def stsubp(a, cl):
+    return True
+
 statements = {
     "PRINT": stprint,
     "WRITE": stwrite,
@@ -617,6 +620,7 @@ statements = {
     "FIRE": stfire,
     "LINE": stline,
     "FOR": stfor,
+    "SUBP": stsubp,
 }
 
 if __name__=='__main__':
