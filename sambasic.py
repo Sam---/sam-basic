@@ -562,17 +562,27 @@ def stline(a, cl):
         return syntaxerror(cl)
 
 def stfor(a, cl):
-    m = re.match(r"(#\w+,)?(\d+,)?(\d+)\s+(.*)$", a)
+    m = re.match(r"(#\w+)?\s*(.*?,)?(.*?)\s+(.*)$", a)
     if m:
+        cachedval = None
         var = m.group(1) or None
+        if var:
+            var = var[1:]
+            if var in nvars:
+                cachedval = nvars[var]
         start = m.group(2) or "0,"
-        end = m.group(3)
+        start = safexpr(nunescape(start[:-1]))
+        end = safexpr(nunescape(m.group(3)))
 
         st = m.group(4)
 
-        for i in range(int(start[:-1]), int(end)):
+        for i in range(start, end):
+            if var:
+                nvars[var] = i
             if not execute(st, cl):
                 return False
+        if var and cachedval is not None:
+            nvars[var] = cachedval
         return True
     else:
         return syntaxerror(cl)
