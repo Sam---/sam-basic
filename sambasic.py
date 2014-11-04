@@ -562,7 +562,7 @@ def stline(a, cl):
         return syntaxerror(cl)
 
 def stfor(a, cl):
-    m = re.match(r"(#\w+)?\s*(.*?,)?(.*?)\s+(.*)$", a)
+    m = re.match(r"(#\w+)?\s*(.*?,)?(.+?)\s+(.*)$", a)
     if m:
         cachedval = None
         var = m.group(1) or None
