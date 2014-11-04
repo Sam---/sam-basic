@@ -587,32 +587,6 @@ def stfor(a, cl):
     else:
         return syntaxerror(cl)
 
-
-"""
-def stwait(a, cl):
-    global gerrno, gerrln
-    @contextmanager
-    def cbreak():
-        old_attrs = termios.tcgetattr(stdin)
-        tty.setcbreak(stdin)
-        try:
-            yield
-        finally:
-            termios.tcsetattr(stdin, termios.TCSADRAIN, old_attrs)
-
-    m = re.match(r"(\S.*?)?\s*", a)
-    if m:
-        exp = m.group(1)
-        if exp:
-            # handle timeout
-        else:
-            with cbreak():
-                char = stdin.read(1)
-                gerrno = "KEY"
-                gerrln = cl.d
-            return False
-"""
-
 statements = {
     "PRINT": stprint,
     "WRITE": stwrite,
@@ -643,7 +617,6 @@ statements = {
     "FIRE": stfire,
     "LINE": stline,
     "FOR": stfor,
-#   "WAIT": stwait
 }
 
 if __name__=='__main__':
