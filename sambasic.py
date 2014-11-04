@@ -112,7 +112,7 @@ def run(stream):
                 elif gerrno in builtin_handlers:
                     builtin_handlers[gerrno]()
                 else:
-                    print("UNHANDLED [{}] ON LINE {}".format(gerrno, gerrln))
+                    print("UNHANDLED {} ON LINE {}".format(gerrno, gerrln))
                     sys.exit(0)
                 gerrno = None
 
