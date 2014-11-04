@@ -4,6 +4,8 @@ import traceback
 import tty, termios
 from contextlib import contextmanager
 
+from myblocks import blockdrawing
+
 class LazyFile:
     def __init__(self, name):
         self.name = name
@@ -516,6 +518,15 @@ def stfire(a, cl):
         return False
     else:
         return syntaxerror(cl)
+
+def stline(a, cl):
+    chdes = unescape(a).replace(" \t", "")
+    if chdes in blockdrawing:
+        stdout.write(blockdrawing[chdes])
+        return True
+    else:
+        return syntaxerror(cl)
+
 """
 def stwait(a, cl):
     global gerrno, gerrln
@@ -567,7 +578,8 @@ statements = {
     "RIGHT": stright,
     "HOME": sthome,
     "COLOR": stcolor,
-    "FIRE": stfire
+    "FIRE": stfire,
+    "LINE": stline
 #   "WAIT": stwait
 }
 
