@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-import sys, re, math, random
+import sys, re, math, random, subprocess
 import traceback
 import tty, termios
 from contextlib import contextmanager
@@ -74,13 +74,19 @@ def hundefined():
 def hctrlc():
     sys.exit(0)
 
+def hfail():
+    print("COMMAND ON LINE {} EXITED WITH NON-ZERO STATUS CODE [FAIL]".format(
+        gerrln))
+    sys.exit(1)
+
 builtin_handlers = {
     "SYNTAXERROR": hsyntaxerror,
     "EOF": heof,
     "NOMATCH": hnomatch,
     "LISTERROR": hlisterror,
     "UNDEFINED": hundefined,
-    "CTRLC": hctrlc
+    "CTRLC": hctrlc,
+    "FAIL": hfail
 }
 
 stdin = sys.stdin
@@ -588,7 +594,15 @@ def stfor(a, cl):
         return syntaxerror(cl)
 
 def stsubp(a, cl):
-    return True
+    cmd = unescape(a)
+    retc = subprocess.call(cmd, shell=True)
+    if retc == 0:
+        return True
+    else:
+        global gerrno, gerrln
+        gerrln = cl.d
+        gerrno = "FAIL"
+        return False
 
 statements = {
     "PRINT": stprint,
