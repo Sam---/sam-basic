@@ -2,6 +2,7 @@
 import sys, re, math, random, subprocess
 import traceback
 import tty, termios
+import os
 from contextlib import contextmanager
 
 from myblocks import blockdrawing
@@ -622,6 +623,25 @@ def statoi(a, cl):
         gerrno = "SYNTAXERROR"
         return False
 
+def stfork(a, cl):
+    cmd = unescape(a)
+    m = re.match(r"\s*(\d+)\s*(\d+)?\s*(\$CHILD)?\s*$", cmd)
+    if m:
+        pid = os.fork()
+        if pid:
+            if m.group(2):
+                cl.d = int(m.group(2)) - 1
+            if m.group(3):
+                svars["CHILD"] = str(pid)
+        else:
+            cl.d = int(m.group(1)) - 1
+        return True
+    else:
+        global gerrno, gerrln
+        gerrno = "SYNTAXERROR"
+        gerrln = cl.d
+        return False
+
 statements = {
     "PRINT": stprint,
     "WRITE": stwrite,
@@ -653,7 +673,8 @@ statements = {
     "LINE": stline,
     "FOR": stfor,
     "SUBP": stsubp,
-    "ATOI": statoi
+    "ATOI": statoi,
+    "FORK": stfork
 }
 
 if __name__=='__main__':
