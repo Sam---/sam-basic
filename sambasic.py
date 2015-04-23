@@ -604,6 +604,24 @@ def stsubp(a, cl):
         gerrno = "FAIL"
         return False
 
+def statoi(a, cl):
+    global gerrno, gerrln
+    m = re.match(r"\$(.*?)\s*#(.*?)\s*$", a)
+    if m:
+        svr = m.group(1)
+        nvr = m.group(2)
+        try:
+            nvars[nvr] = float(svars[svr])
+        except ValueError:
+            gerrln = cl.d
+            gerrno = "SYNTAXERROR"
+            return False
+        return True
+    else:
+        gerrln = cl.d
+        gerrno = "SYNTAXERROR"
+        return False
+
 statements = {
     "PRINT": stprint,
     "WRITE": stwrite,
@@ -635,6 +653,7 @@ statements = {
     "LINE": stline,
     "FOR": stfor,
     "SUBP": stsubp,
+    "ATOI": statoi
 }
 
 if __name__=='__main__':
