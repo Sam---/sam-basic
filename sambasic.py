@@ -3,6 +3,7 @@ import sys, re, math, random, subprocess
 import traceback
 import tty, termios
 import os
+import collections
 from contextlib import contextmanager
 
 from myblocks import blockdrawing
@@ -30,14 +31,23 @@ class Ref:
     def __init__(self, obj):
         self.d = obj
 
-class VarList(dict):
-    def __index__(self, key):
+class VarList(collections.MutableMapping):
+    def __init__(self, *args, **kwargs):
+        self.store = dict()
+        self.update(dict(*args, **kwargs))
+    def __getitem__(self, key):
         if key not in self:
-            global gerrno
-            gerrno = "UNDEFINED"
+            svars["ERRNO"] = "UNDEFINED"
             raise Exception()
         else:
-            return super[key]
+            return self.store[key]
+
+    def __setitem__(self, k, v): self.store[k] = v
+    def __delitem__(self, k): del self.store[k]
+    def __iter__(self): return iter(self.store)
+    def __len__(self): return len(self.store)
+    def __contains__(self, k): return k in self.store
+
 
 codelines = []
 svars = VarList()
@@ -45,31 +55,48 @@ nvars = VarList()
 bvars = VarList()
 fvars = VarList()
 handlers = {}
-gerrno = None
-gerrln = -1
-gerrmeta = None
+svars["ERRNO"] = "OK"
+svars["__ERRLN"] = -1
+svars["__ERRMET0"] = "EMPTY"
+svars["__ERRMET1"] = "EMPTY"
+svars["__ERRMET2"] = "EMPTY"
+svars["__ERRMET3"] = "EMPTY"
+svars["__ERRMET4"] = "EMPTY"
+svars["__ERRMET5"] = "EMPTY"
+svars["__ERRMET6"] = "EMPTY"
+svars["__ERRMET7"] = "EMPTY"
+svars["__ERRMET8"] = "EMPTY"
+svars["__ERRMET9"] = "EMPTY"
+
+try:
+    import mod_wsgi
+    bvars["__HAVE_WSGI"] = True
+    svars["__WSGI_IMPL"] = "MOD_WSGI"
+except ImportError:
+    bvars["__HAVE_WSGI"] = False
 
 def hsyntaxerror():
-    print("SYNTAX ERROR ON LINE {} [SYNTAXERROR]".format(gerrln))
+    print("SYNTAX ERROR ON LINE {} [SYNTAXERROR]".format(svars["__ERRLN"]))
     sys.exit(1)
 
 def heof():
     print("UNHANDLED END OF FILE ON LINE {} FROM FILE {} [EOF]".format(
-        gerrln, stdin.name))
+        svars["__ERRLN"], stdin.name))
     sys.exit(1)
 
 def hnomatch():
-    print("COULD NOT EXPLODE STRING ON LINE {} [NOMATCH]".format(gerrln))
+    print("COULD NOT EXPLODE STRING ON LINE {} [NOMATCH]".format(
+        svars["__ERRLN"]))
     sys.exit(1)
 
 def hlisterror():
     print("INVAILD LIST STATEMENT INTERVAL ON LINE {} [LISTERROR]".format(
-        gerrln))
+        svars["__ERRLN"]))
     sys.exit(1)
 
 def hundefined():
     print("REFERENCE TO UNDEFINED VARIABLE ON LINE {} [UNDEFINED]".format(
-        gerrln))
+        svars["__ERRLN"]))
     sys.exit(1)
 
 def hctrlc():
@@ -77,7 +104,7 @@ def hctrlc():
 
 def hfail():
     print("COMMAND ON LINE {} EXITED WITH NON-ZERO STATUS CODE [FAIL]".format(
-        gerrln))
+        svars["__ERRLN"]))
     sys.exit(1)
 
 builtin_handlers = {
@@ -113,18 +140,17 @@ def run(stream):
             codelines[int(m.group(1))] = m.group(2)
         else:
             if not execute(line, Ref(-1)):
-                global gerrno, gerrln
-                if gerrno in handlers:
-                    execute(handlers[gerrno], Ref(-1))
-                elif gerrno in builtin_handlers:
-                    builtin_handlers[gerrno]()
+                if svars["ERRNO"] in handlers:
+                    execute(handlers[svars["ERRNO"]], Ref(-1))
+                elif svars["ERRNO"] in builtin_handlers:
+                    builtin_handlers[svars["ERRNO"]]()
                 else:
-                    print("UNHANDLED {} ON LINE {}".format(gerrno, gerrln))
+                    print("UNHANDLED {} ON LINE {}".format(
+                        svars["ERRNO"], svars["__ERRLN"]))
                     sys.exit(0)
-                gerrno = None
+                svars["ERRNO"] = None
 
 def execute(line, cl):
-    global gerrno, gerrln
     if not line:
         return True
     m = re.match(r"(\w+)\s*(.*)$", line)
@@ -135,18 +161,18 @@ def execute(line, cl):
             try:
                 return statements[stat](args, cl)
             except EOFError:
-                gerrno = "EOF"
-                gerrln = cl.d
+                svars["ERRNO"] = "EOF"
+                svars["__ERRLN"] = cl.d
                 return False
             except Exception:
-                if gerrno:
-                    gerrln = cl.d
+                if svars["ERRNO"]:
+                    svars["__ERRLN"] = cl.d
                     return False
                 else:
                     raise
             except KeyboardInterrupt:
-                gerrno = "CTRLC"
-                gerrln = cl.d
+                svars["ERRNO"] = "CTRLC"
+                svars["__ERRLN"] = cl.d
                 return False
         else:
             return syntaxerror(cl)
@@ -188,10 +214,8 @@ def litvar(v):
         return v
 
 def syntaxerror(cl):
-    global gerrno
-    global gerrln
-    gerrno = "SYNTAXERROR"
-    gerrln = cl.d
+    svars["ERRNO"] = "SYNTAXERROR"
+    svars["__ERRLN"] = cl.d
     return False
 
 
@@ -211,9 +235,8 @@ def stlist(a, cl):
         if m.group(2):
             end = int(m.group(3))
             if end < line:
-                global gerrno, gerrln
-                gerrno = "LISTERROR"
-                gerrln = cl.d
+                svars["ERRNO"] = "LISTERROR"
+                svars["__ERRLN"] = cl.d
                 return False
             while line < end:
                 if codelines[line]:
@@ -475,10 +498,8 @@ def stexplode(a, cl):
                 idx += 1
             return True
         else:
-            global gerrno
-            global gerrln
-            gerrno = "NOMATCH"
-            gerrln = cl.d
+            svars["ERRNO"] = "NOMATCH"
+            svars["__ERRLN"] = cl.d
             return False
     else:
         return syntaxerror(cl)
@@ -553,9 +574,8 @@ def stcolor(a, cl):
 def stfire(a, cl):
     m = re.match(r"(\w+)\s*", a)
     if m:
-        global gerrno, gerrln
-        gerrno = m.group(1)
-        gerrln = cl.d
+        svars["ERRNO"] = m.group(1)
+        svars["__ERRLN"] = cl.d
         return False
     else:
         return syntaxerror(cl)
@@ -600,13 +620,12 @@ def stsubp(a, cl):
     if retc == 0:
         return True
     else:
-        global gerrno, gerrln
-        gerrln = cl.d
-        gerrno = "FAIL"
+        svars["__ERRLN"] = cl.d
+        svars["ERRNO"] = "FAIL"
+        svars["__ERRMET0"] = str(retc)
         return False
 
 def statoi(a, cl):
-    global gerrno, gerrln
     m = re.match(r"\$(.*?)\s*#(.*?)\s*$", a)
     if m:
         svr = m.group(1)
@@ -614,14 +633,10 @@ def statoi(a, cl):
         try:
             nvars[nvr] = float(svars[svr])
         except ValueError:
-            gerrln = cl.d
-            gerrno = "SYNTAXERROR"
-            return False
+            return syntaxerror(cl)
         return True
     else:
-        gerrln = cl.d
-        gerrno = "SYNTAXERROR"
-        return False
+        return syntaxerror(cl)
 
 def stfork(a, cl):
     cmd = unescape(a)
@@ -637,10 +652,7 @@ def stfork(a, cl):
             cl.d = int(m.group(1)) - 1
         return True
     else:
-        global gerrno, gerrln
-        gerrno = "SYNTAXERROR"
-        gerrln = cl.d
-        return False
+        return syntaxerror(cl)
 
 statements = {
     "PRINT": stprint,
@@ -684,6 +696,7 @@ if __name__=='__main__':
                 run(source)
                 strun("", Ref(-1))
         else:
+            import readline
             run(sys.stdin)
     except Exception:
         fname = "ERROR{}.TXT".format(random.randrange(0xffff, 0xffffffff))
