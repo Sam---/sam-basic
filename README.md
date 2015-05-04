@@ -1,7 +1,7 @@
 sam-basic
 =========
 
-This is the interpreter for the SAM-BASIC language, which I created while procrastinating on my college applications. I have never written a line of BASIC code in my life, but this language is build on what I've seen of it:
+This is the interpreter for the SAM-BASIC language, which I created while procrastinating on my college applications. I have never written a line of BASIC code in my life, but this language is built on what I've seen of it:
 
 * Line numbers
 * Goto Statement
