@@ -7,7 +7,7 @@ This is the interpreter for the SAM-BASIC language, which I created while procra
 * Goto Statement
 * ALL CAPS
 
-This said, BASIC looks to have an actual parser, while SAM-BASIC has a mess worse that what the C Shell uses. Everything is done with regular expressions.
+This said, BASIC looks to have an actual parser, while SAM-BASIC has a something a cat might have coughed up. Everything is done with regular expressions.
 
 Some goals for the future:
 
@@ -20,3 +20,5 @@ Some goals for the future:
 * Add functions
 * Add `DO` statement that executes a series of statements
 * Add interface for C APIs
+
+The interpreter is made with some of the worst Python code I've ever written.
